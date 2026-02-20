@@ -97,11 +97,30 @@ function coresight_searchai_frontend_settings() {
 		'apiBaseUrl'    => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
 		'searchPageUrl' => home_url( '/coresight-search' ),
 	);
-	// The handle is typically {namespace}-{name}-view-script
+
+	$is_search_page = get_query_var( 'coresight_search_page' );
+
+	// On the search page (or when global visibility is on), ensure the view script
+	// is registered even if the Gutenberg block hasn't rendered on this page.
+	if ( ! wp_script_is( 'coresight-searchai-view-script', 'registered' ) ) {
+		$asset_file = plugin_dir_path( __FILE__ ) . 'build/searchai/view.asset.php';
+		$asset      = file_exists( $asset_file )
+			? require $asset_file
+			: array( 'dependencies' => array(), 'version' => '0.0.1' );
+
+		wp_register_script(
+			'coresight-searchai-view-script',
+			plugins_url( 'build/searchai/view.js', __FILE__ ),
+			$asset['dependencies'],
+			$asset['version'],
+			true
+		);
+	}
+
 	wp_localize_script( 'coresight-searchai-view-script', 'searchaiSettings', $data );
 
 	// Enqueue on global visibility pages OR on the dedicated search page
-	if ( get_option( 'coresight_searchai_global_visibility' ) || get_query_var( 'coresight_search_page' ) ) {
+	if ( get_option( 'coresight_searchai_global_visibility' ) || $is_search_page ) {
 		wp_enqueue_script( 'coresight-searchai-view-script' );
 
 		// Enqueue the view style manually since we are rendering outside the block context
