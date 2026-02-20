@@ -59,68 +59,17 @@ function coresight_searchai_block_init() {
 add_action( 'init', 'coresight_searchai_block_init' );
 
 /**
- * Register rewrite rules for the dedicated search results page.
- */
-function coresight_searchai_rewrite_rules() {
-	add_rewrite_rule( '^coresight-search/?$', 'index.php?coresight_search_page=1', 'top' );
-}
-add_action( 'init', 'coresight_searchai_rewrite_rules' );
-
-function coresight_searchai_query_vars( $vars ) {
-	$vars[] = 'coresight_search_page';
-	return $vars;
-}
-add_filter( 'query_vars', 'coresight_searchai_query_vars' );
-
-function coresight_searchai_template_include( $template ) {
-	if ( get_query_var( 'coresight_search_page' ) ) {
-		return plugin_dir_path( __FILE__ ) . 'templates/search-page.php';
-	}
-	return $template;
-}
-add_filter( 'template_include', 'coresight_searchai_template_include' );
-
-/**
- * Flush rewrite rules on activation so /coresight-search works immediately.
- */
-function coresight_searchai_activate() {
-	coresight_searchai_rewrite_rules();
-	flush_rewrite_rules();
-}
-register_activation_hook( __FILE__, 'coresight_searchai_activate' );
-
-/**
  * Enqueue frontend settings.
  */
 function coresight_searchai_frontend_settings() {
 	$data = array(
-		'apiBaseUrl'    => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
-		'searchPageUrl' => home_url( '/coresight-search' ),
+		'apiBaseUrl' => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
 	);
-
-	$is_search_page = get_query_var( 'coresight_search_page' );
-
-	// On the search page (or when global visibility is on), ensure the view script
-	// is registered even if the Gutenberg block hasn't rendered on this page.
-	if ( ! wp_script_is( 'coresight-searchai-view-script', 'registered' ) ) {
-		$asset_file = plugin_dir_path( __FILE__ ) . 'build/searchai/view.asset.php';
-		$asset      = file_exists( $asset_file )
-			? require $asset_file
-			: array( 'dependencies' => array(), 'version' => '0.0.1' );
-
-		wp_register_script(
-			'coresight-searchai-view-script',
-			plugins_url( 'build/searchai/view.js', __FILE__ ),
-			$asset['dependencies'],
-			$asset['version'],
-			true
-		);
-	}
 
 	wp_localize_script( 'coresight-searchai-view-script', 'searchaiSettings', $data );
 
-	// Enqueue on global visibility pages OR on the dedicated search page
-	if ( get_option( 'coresight_searchai_global_visibility' ) || $is_search_page ) {
+	// Enqueue on global visibility pages
+	if ( get_option( 'coresight_searchai_global_visibility' ) ) {
 		wp_enqueue_script( 'coresight-searchai-view-script' );
 
 		// Enqueue the view style manually since we are rendering outside the block context
@@ -219,10 +168,6 @@ function coresight_searchai_options_page() {
  * Output root element in footer if enabled
  */
 function coresight_searchai_footer_output() {
-	// Don't output the search widget on the dedicated search page itself
-	if ( get_query_var( 'coresight_search_page' ) ) {
-		return;
-	}
 	if ( get_option( 'coresight_searchai_global_visibility' ) ) {
 		echo '<div data-searchai-widget></div>';
 	}
