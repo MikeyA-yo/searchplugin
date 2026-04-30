@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Search, X, ArrowRight } from "lucide-react";
+import { X } from "lucide-react";
 import { createRoot } from "@wordpress/element";
-import { ChatInterface } from "./ChatInterface";
+import { SummaryView } from "./SummaryView";
 
 /**
  * Renders a full screen overlay for search results directly in the DOM.
@@ -27,7 +27,7 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery }) => {
 				</button>
 			</div>
 			<div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-8 h-full overflow-hidden flex flex-col">
-				<ChatInterface displayMode="fullscreen" initialQuery={initialQuery} />
+				<SummaryView displayMode="fullscreen" initialQuery={initialQuery} />
 			</div>
 		</div>
 	);

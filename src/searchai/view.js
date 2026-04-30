@@ -3,7 +3,7 @@
  * on posts/pages that contain this block.
  */
 import { createRoot } from '@wordpress/element';
-import { ChatInterface } from './components/ChatInterface';
+import { SummaryView } from './components/SummaryView';
 import { SearchWidget } from './components/SearchWidget';
 import './style.scss';
 
@@ -20,9 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dedicated search results page — read query from URL
             const params = new URLSearchParams(window.location.search);
             const initialQuery = params.get('q') || '';
-            root.render(<ChatInterface displayMode="inline" initialQuery={initialQuery} />);
+            root.render(<SummaryView displayMode="inline" initialQuery={initialQuery} />);
         } else {
-            root.render(<ChatInterface displayMode={displayMode} />);
+            root.render(<SummaryView displayMode={displayMode} />);
         }
 
         element.dataset.mounted = 'true';
