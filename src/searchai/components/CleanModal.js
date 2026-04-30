@@ -10,9 +10,11 @@ export const CleanModal = ({ isOpen, onClose, children, maxWidth = '1200px' }) =
             <div className="absolute left-6 top-6">
                 <button
                     onClick={onClose}
-                    className="h-10 w-10 rounded-full bg-white/95 shadow flex items-center justify-center text-gray-600"
+                    className="rounded-full bg-white/95 shadow flex items-center justify-center text-gray-800 hover:text-black hover:bg-white transition-all cursor-pointer"
+                    style={{ width: '56px', height: '56px' }}
+                    title="Close"
                 >
-                    <X size={18} />
+                    <X size={32} strokeWidth={2.5} />
                 </button>
             </div>
 
