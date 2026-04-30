@@ -112,11 +112,8 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
 
     return (
         <div className={`
-            flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100
-            ${displayMode === 'fullscreen' 
-                ? 'max-w-5xl mx-auto w-full h-[calc(100vh-140px)]' 
-                : 'h-full'
-            }
+            flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 h-full w-full
+            ${displayMode === 'fullscreen' ? 'w-full h-full' : 'h-full'}
         `}>
             {/* Top Branding Bar */}
             <div className="bg-red-600 h-1.5 w-full" />
@@ -129,7 +126,7 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
             </div>
 
             {/* Search Form */}
-            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+            <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
                 <form onSubmit={handleSearchSubmit} className="flex gap-3">
                     <input
                         type="text"
@@ -160,7 +157,7 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
             </div>
 
             {/* Results Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 bg-gray-50/30">
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
                         <p className="font-semibold">Error</p>
@@ -217,14 +214,16 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
 
                         {/* Research Cards */}
                         {researchResults && researchResults.length > 0 && (
-                            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Referenced Resources</h3>
-                                    <p className="text-sm font-semibold text-gray-800">Showing {researchResults.length} posts</p>
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm mt-8 overflow-hidden">
+                                <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Resources</h3>
+                                    <p className="text-xs font-semibold text-gray-400">Showing {researchResults.length} posts</p>
                                 </div>
-                                <div className="space-y-6">
+                                <div className="divide-y divide-gray-100">
                                     {researchResults.map((result, idx) => (
-                                        <ResearchCard key={idx} {...result} />
+                                        <div key={idx} className="p-6 transition-colors hover:bg-gray-50/50">
+                                            <ResearchCard {...result} />
+                                        </div>
                                     ))}
                                 </div>
                             </div>

@@ -2,34 +2,16 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { createRoot } from "@wordpress/element";
 import { SummaryView } from "./SummaryView";
+import CleanModal from "./CleanModal";
 
 /**
  * Renders a full screen overlay for search results directly in the DOM.
  */
 const SearchOverlay = ({ isOpen, onClose, initialQuery }) => {
-	if (!isOpen) return null;
-
-	React.useEffect(() => {
-		document.body.style.overflow = "hidden";
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, []);
-
 	return (
-		<div className="fixed inset-0 z-[100000] bg-white/95 backdrop-blur-sm animate-in fade-in duration-200 flex flex-col">
-			<div className="flex justify-end p-6">
-				<button
-					onClick={onClose}
-					className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900"
-				>
-					<X size={32} />
-				</button>
-			</div>
-			<div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-8 h-full overflow-hidden flex flex-col">
-				<SummaryView displayMode="fullscreen" initialQuery={initialQuery} />
-			</div>
-		</div>
+		<CleanModal isOpen={isOpen} onClose={onClose}>
+			<SummaryView displayMode="fullscreen" initialQuery={initialQuery} />
+		</CleanModal>
 	);
 };
 
