@@ -6,11 +6,11 @@ export const CleanModal = ({ isOpen, onClose, children, maxWidth = '1200px' }) =
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100000] bg-black/40 flex items-center justify-center p-6">
-            <div className="absolute left-6 top-6">
+        <div className="fixed inset-0 z-[100000] bg-white flex">
+            <div className="absolute left-6 top-6 z-50">
                 <button
                     onClick={onClose}
-                    className="rounded-full bg-white/95 shadow flex items-center justify-center text-gray-800 hover:text-black hover:bg-white transition-all cursor-pointer"
+                    className="rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-800 hover:text-black hover:bg-gray-50 transition-all cursor-pointer"
                     style={{ width: '56px', height: '56px' }}
                     title="Close"
                 >
@@ -18,7 +18,7 @@ export const CleanModal = ({ isOpen, onClose, children, maxWidth = '1200px' }) =
                 </button>
             </div>
 
-            <div className="w-full max-w-4xl h-[85vh] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+            <div className="w-full h-full flex flex-col pt-24 pb-0 px-0 md:pt-0">
                 {children}
             </div>
         </div>
