@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Sparkles, ArrowRight, Loader } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ResearchCard } from './ResearchCard';
 
@@ -10,6 +10,7 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState(null);
     const [hasSearched, setHasSearched] = React.useState(false);
+    const [isSummaryExpanded, setIsSummaryExpanded] = React.useState(false);
 
     // Read the backend URL injected by WordPress via wp_localize_script in searchai.php
     const apiBaseUrl = (window.searchaiSettings && window.searchaiSettings.apiBaseUrl) || 'https://coresight-chat-backend.vercel.app';
@@ -22,6 +23,7 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
         setSummary(null);
         setResearchResults([]);
         setHasSearched(true);
+        setIsSummaryExpanded(false);
 
         try {
             // Enhanced prompt to get comprehensive summary with all relevant links in one response
@@ -186,7 +188,7 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
                                 </div>
                                 <div className="flex-1">
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-3">Research Summary</h2>
-                                    <div className="prose prose-sm max-w-none text-gray-700">
+                                    <div className={`prose prose-sm max-w-none text-gray-700 overflow-hidden transition-all duration-300 ${isSummaryExpanded ? '' : 'line-clamp-3'}`}>
                                         <ReactMarkdown
                                             components={{
                                                 a: ({ node, ...props }) => (
@@ -208,6 +210,18 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
                                             {summary}
                                         </ReactMarkdown>
                                     </div>
+                                    {summary && summary.length > 0 && (
+                                        <button 
+                                            onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                                            className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium flex items-center transition-colors"
+                                        >
+                                            {isSummaryExpanded ? (
+                                                <>Show less <ChevronUp size={16} className="ml-1" /></>
+                                            ) : (
+                                                <>Read more <ChevronDown size={16} className="ml-1" /></>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
