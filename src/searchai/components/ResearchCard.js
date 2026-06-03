@@ -42,7 +42,7 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
                     {badge && (
                         <>
                             {date && <span className="text-gray-300">|</span>}
-                            <span className="bg-red-600 text-white font-semibold px-2 py-0.5 rounded text-xs">
+                            <span className="bg-red-600 text-white font-semibold px-2.5 py-0.5 rounded-full text-xs">
                                 {badge}
                             </span>
                         </>
