@@ -1,18 +1,28 @@
 import * as React from 'react';
-import { Sparkles, ArrowRight, Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Sparkles, ChevronDown, ChevronUp, Loader, X, FileText, PlayCircle, Mic, LayoutGrid } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ResearchCard } from './ResearchCard';
 
+const TYPE_FILTERS = [
+    { label: 'Reports', value: 'report', icon: FileText },
+    { label: 'Video', value: 'video', icon: PlayCircle },
+    { label: 'Podcast', value: 'podcast', icon: Mic },
+    { label: 'Infographic', value: 'infographic', icon: LayoutGrid },
+];
+
+const DROPDOWN_LABELS = ['Report Type', 'Sector', 'Theme', 'Region', 'Company', 'Company Type'];
+
 export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
     const [query, setQuery] = React.useState(initialQuery);
+    const [inputValue, setInputValue] = React.useState(initialQuery);
     const [summary, setSummary] = React.useState(null);
     const [researchResults, setResearchResults] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState(null);
     const [hasSearched, setHasSearched] = React.useState(false);
     const [isSummaryExpanded, setIsSummaryExpanded] = React.useState(false);
+    const [activeTypeFilter, setActiveTypeFilter] = React.useState(null);
 
-    // Read the backend URL injected by WordPress via wp_localize_script in searchai.php
     const apiBaseUrl = (window.searchaiSettings && window.searchaiSettings.apiBaseUrl) || 'https://coresight-chat-backend.vercel.app';
 
     const handleSearch = async (searchQuery) => {
@@ -24,43 +34,13 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
         setResearchResults([]);
         setHasSearched(true);
         setIsSummaryExpanded(false);
+        setActiveTypeFilter(null);
 
         try {
-            // Enhanced prompt to get comprehensive summary with all relevant links in one response
-            const enhancedPrompt = `You are a comprehensive research analyst for Coresight Research. A user is searching for: "${searchQuery}"
-
-Your task is to create a COMPLETE, STANDALONE research summary with:
-
-**Essential Requirements:**
-1. Directly and thoroughly answer the search query with all relevant findings
-2. Include EVERY relevant statistic, data point, insight, and trend from your knowledge base
-3. Embed ALL applicable research report links in markdown format: [Report Title](URL)
-4. Provide specific dates, publications, and metrics whenever available
-5. Organize content with clear section headers (## for main sections, ### for subsections)
-6. Cite specific Coresight Research reports and their findings
-7. This is the ONLY response the user will receive - make it comprehensive and complete
-
-**Format Guidelines:**
-- Use markdown formatting for emphasis and structure
-- Include links naturally within the text where relevant
-- Make it professional, concise but thorough
-- Focus on actionable insights and key findings
-
-**Quality Standards:**
-- No phrases like "I can provide more" or "let me know if you need"
-- No follow-up prompts or questions
-- Assume this is the final answer the user receives
-
-This must be a FINAL, COMPREHENSIVE research summary. Include all context needed for understanding.`;
-
             const res = await fetch(`${apiBaseUrl}/search/plugin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: enhancedPrompt,
-                    originalQuery: searchQuery,
-                    history: []
-                }),
+                body: JSON.stringify({ message: searchQuery, history: [] }),
             });
 
             if (!res.ok) {
@@ -69,7 +49,6 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
             }
 
             const data = await res.json();
-
             const normalizedArticles = Array.isArray(data.articles)
                 ? data.articles.map((article) => ({
                     title: article.title,
@@ -93,149 +72,172 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
         }
     };
 
-    const handleSearchSubmit = async (e) => {
+    const handleFormSubmit = (e) => {
         e.preventDefault();
-        await handleSearch(query);
+        if (inputValue.trim()) {
+            setQuery(inputValue);
+            handleSearch(inputValue);
+        }
     };
 
-    // Auto-search if initial query is provided
     React.useEffect(() => {
         if (initialQuery && !hasSearched) {
+            setInputValue(initialQuery);
             setQuery(initialQuery);
             handleSearch(initialQuery);
         }
     }, [initialQuery, hasSearched]);
 
-    const summaryEndRef = React.useRef(null);
-
-    React.useEffect(() => {
-        summaryEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, [summary, isLoading]);
+    const filteredResults = React.useMemo(() => {
+        if (!activeTypeFilter) return researchResults;
+        return researchResults.filter((r) => {
+            const cat = (r.category || '').toLowerCase();
+            const tags = (r.tags || []).map((t) => t.toLowerCase());
+            return cat.includes(activeTypeFilter) || tags.some((t) => t.includes(activeTypeFilter));
+        });
+    }, [researchResults, activeTypeFilter]);
 
     return (
-        <div className={`
-            flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 h-full w-full
-            ${displayMode === 'fullscreen' ? 'w-full h-full' : 'h-full'}
-        `}>
-            {/* Top Branding Bar */}
-            <div className="bg-red-600 h-1.5 w-full" />
-
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-gray-100 bg-white">
-                <div className="bg-red-50 p-1.5 rounded-lg">
-                    <Sparkles size={18} className="text-red-600" />
-                </div>
-                <span className="font-bold text-gray-800 tracking-tight">Coresight Research <span className="text-gray-400 font-normal ml-1">| AI Summary</span></span>
-            </div>
-
-            {/* Search Form */}
-            <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
-                <form onSubmit={handleSearchSubmit} className="flex gap-3">
+        <div className="flex flex-col bg-white h-full w-full overflow-hidden">
+            {/* Search Bar */}
+            <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
+                <form onSubmit={handleFormSubmit} className="relative flex items-center">
+                    <Search size={17} className="absolute left-4 text-gray-400 pointer-events-none flex-shrink-0" />
                     <input
                         type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="What research insights are you looking for?"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Search Coresight Research..."
                         disabled={isLoading}
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 text-gray-900 placeholder-gray-500"
+                        className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50 text-gray-900 placeholder-gray-400 text-sm"
                     />
-                    <button
-                        type="submit"
-                        disabled={isLoading || !query.trim()}
-                        className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:bg-gray-300 transition-colors font-semibold flex items-center gap-2 disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader size={18} className="animate-spin" />
-                                <span>Searching...</span>
-                            </>
-                        ) : (
-                            <>
-                                <ArrowRight size={18} />
-                                <span>Search</span>
-                            </>
-                        )}
-                    </button>
+                    {inputValue && (
+                        <button
+                            type="button"
+                            onClick={() => setInputValue('')}
+                            className="absolute right-3 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                        >
+                            <X size={17} />
+                        </button>
+                    )}
                 </form>
             </div>
 
-            {/* Results Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 bg-gray-50/30">
+            {/* Scrollable Results */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-white">
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
-                        <p className="font-semibold">Error</p>
+                        <p className="font-semibold text-sm">Error</p>
                         <p className="text-sm">{error}</p>
                     </div>
                 )}
 
                 {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
                         <div className="relative w-12 h-12">
                             <div className="absolute inset-0 bg-red-200 rounded-full animate-pulse" />
                             <div className="absolute inset-2 bg-red-100 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
                             <Sparkles className="absolute inset-0 m-auto text-red-600 animate-bounce" size={24} />
                         </div>
-                        <p className="text-gray-600 font-medium">Searching Coresight Research Library...</p>
+                        <p className="text-gray-600 font-medium text-sm">Searching Coresight Research Library...</p>
                     </div>
                 )}
 
                 {hasSearched && !isLoading && summary && (
                     <>
-                        {/* Summary Content */}
-                        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                            <div className="flex gap-4">
-                                <div className="h-10 w-10 min-w-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-200 flex-shrink-0">
-                                    <Sparkles size={20} />
-                                </div>
-                                <div className="flex-1">
-                                    <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-3">Research Summary</h2>
-                                    <div className={`prose prose-sm max-w-none text-gray-700 overflow-hidden transition-all duration-300 ${isSummaryExpanded ? '' : 'line-clamp-3'}`}>
-                                        <ReactMarkdown
-                                            components={{
-                                                a: ({ node, ...props }) => (
-                                                    <a
-                                                        {...props}
-                                                        className="text-red-600 font-semibold underline underline-offset-4 hover:text-red-800 transition-colors"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    />
-                                                ),
-                                                h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold text-gray-900 mt-4 mb-2" />,
-                                                h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold text-gray-900 mt-3 mb-2" />,
-                                                h3: ({ node, ...props }) => <h3 {...props} className="text-base font-bold text-gray-900 mt-2 mb-1" />,
-                                                p: ({ node, ...props }) => <p {...props} className="mb-3 text-gray-700 leading-relaxed" />,
-                                                ul: ({ node, ...props }) => <ul {...props} className="list-disc list-inside mb-3 text-gray-700" />,
-                                                ol: ({ node, ...props }) => <ol {...props} className="list-decimal list-inside mb-3 text-gray-700" />,
-                                            }}
-                                        >
-                                            {summary}
-                                        </ReactMarkdown>
-                                    </div>
-                                    {summary && summary.length > 0 && (
-                                        <button 
-                                            onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
-                                            className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium flex items-center transition-colors"
-                                        >
-                                            {isSummaryExpanded ? (
-                                                <>Show less <ChevronUp size={16} className="ml-1" /></>
-                                            ) : (
-                                                <>Read more <ChevronDown size={16} className="ml-1" /></>
-                                            )}
-                                        </button>
+                        {/* AI Overview Card */}
+                        <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Sparkles size={15} className="text-red-600 flex-shrink-0" />
+                                <span className="font-bold text-gray-900 text-sm">AI Overview</span>
+                            </div>
+                            <div className={`prose prose-sm max-w-none text-gray-700 overflow-hidden transition-all duration-300 ${isSummaryExpanded ? '' : 'line-clamp-3'}`}>
+                                <ReactMarkdown
+                                    components={{
+                                        a: ({ node, ...props }) => (
+                                            <a
+                                                {...props}
+                                                className="text-red-600 font-semibold underline underline-offset-4 hover:text-red-800 transition-colors"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            />
+                                        ),
+                                        p: ({ node, ...props }) => <p {...props} className="mb-2 text-gray-700 leading-relaxed text-sm" />,
+                                        ul: ({ node, ...props }) => <ul {...props} className="list-disc list-inside mb-2 text-gray-700 text-sm" />,
+                                        ol: ({ node, ...props }) => <ol {...props} className="list-decimal list-inside mb-2 text-gray-700 text-sm" />,
+                                    }}
+                                >
+                                    {summary}
+                                </ReactMarkdown>
+                            </div>
+                            <div className="flex justify-center mt-4 pt-3 border-t border-gray-100">
+                                <button
+                                    onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                                    className="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1 transition-colors cursor-pointer"
+                                >
+                                    {isSummaryExpanded ? (
+                                        <>Show less <ChevronUp size={14} /></>
+                                    ) : (
+                                        <>Show more <ChevronDown size={14} /></>
                                     )}
-                                </div>
+                                </button>
                             </div>
                         </div>
 
-                        {/* Research Cards */}
-                        {researchResults && researchResults.length > 0 && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm mt-8 overflow-hidden">
-                                <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Resources</h3>
-                                    <p className="text-xs font-semibold text-gray-400">Showing {researchResults.length} posts</p>
+                        {/* Results Section */}
+                        {researchResults.length > 0 && (
+                            <div>
+                                {/* Section Title */}
+                                <h3 className="font-bold text-gray-900 text-sm mb-3">
+                                    All results matching &ldquo;{query}&rdquo;
+                                </h3>
+
+                                {/* Filter Row */}
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-2 mb-2">
+                                    {TYPE_FILTERS.map(({ label, value, icon: Icon }) => (
+                                        <button
+                                            key={value}
+                                            onClick={() => setActiveTypeFilter(activeTypeFilter === value ? null : value)}
+                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
+                                                activeTypeFilter === value
+                                                    ? 'bg-red-600 text-white border-red-600'
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                                            }`}
+                                        >
+                                            <Icon size={11} />
+                                            {label}
+                                        </button>
+                                    ))}
+
+                                    <div className="w-px h-4 bg-gray-300 mx-0.5" />
+
+                                    {DROPDOWN_LABELS.map((label) => (
+                                        <button
+                                            key={label}
+                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md border border-transparent hover:border-gray-200 transition-colors cursor-pointer"
+                                        >
+                                            {label}
+                                            <ChevronDown size={11} />
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => setActiveTypeFilter(null)}
+                                        className="text-xs font-semibold text-red-600 hover:text-red-800 px-1 cursor-pointer"
+                                    >
+                                        Reset
+                                    </button>
                                 </div>
-                                <div className="divide-y divide-gray-100">
-                                    {researchResults.map((result, idx) => (
-                                        <div key={idx} className="p-6 transition-colors hover:bg-gray-50/50">
+
+                                {/* Count */}
+                                <p className="text-xs text-gray-500 mb-4">
+                                    Showing {filteredResults.length} results
+                                </p>
+
+                                {/* Cards */}
+                                <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+                                    {filteredResults.map((result, idx) => (
+                                        <div key={idx} className="p-5 hover:bg-gray-50/60 transition-colors">
                                             <ResearchCard {...result} />
                                         </div>
                                     ))}
@@ -245,21 +247,21 @@ This must be a FINAL, COMPREHENSIVE research summary. Include all context needed
                     </>
                 )}
 
-                {hasSearched && !isLoading && !summary && !error && (
-                    <div className="text-center py-12 text-gray-500">
-                        <p>No results found. Try a different search query.</p>
-                    </div>
-                )}
-
                 {!hasSearched && (
-                    <div className="text-center py-12 space-y-4 text-gray-500">
-                        <Sparkles size={48} className="mx-auto text-red-200 opacity-50" />
-                        <p className="font-medium">Start your research</p>
-                        <p className="text-sm">Enter a search query to get a comprehensive summary with relevant links and insights from Coresight Research.</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+                        <Sparkles size={40} className="text-red-200" />
+                        <p className="font-medium text-gray-800">Start your research</p>
+                        <p className="text-sm text-gray-500 max-w-sm">
+                            Enter a search query to get a comprehensive AI summary with relevant insights from Coresight Research.
+                        </p>
                     </div>
                 )}
 
-                <div ref={summaryEndRef} />
+                {hasSearched && !isLoading && !summary && !error && (
+                    <div className="text-center py-12 text-gray-500 text-sm">
+                        No results found. Try a different search query.
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,33 +1,20 @@
 import React from 'react';
-import { Lock, KeyRound } from 'lucide-react';
+import { FileText, PlayCircle, LayoutGrid } from 'lucide-react';
 
-export const ResearchCard = ({
-    title,
-    summary,
-    url,
-    date,
-    tags,
-    category,
-    badge,
-    image_url
-}) => {
+export const ResearchCard = ({ title, summary, url, date, tags, category, badge, image_url }) => {
     const handleOpenLink = () => {
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
     };
 
-    const hasPremiumBadge = (badge || '').toLowerCase().includes('premium');
-    const metaCategory = category || (tags && tags[0]) || 'Research';
-
     return (
         <div
             onClick={handleOpenLink}
-            className="group cursor-pointer"
-            style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '24px', flexWrap: 'nowrap', width: '100%' }}
+            className="group cursor-pointer flex gap-5 items-start"
         >
-            {/* Image Column: Using strict inline styles to prevent WordPress CSS from overriding sizes */}
+            {/* Thumbnail */}
             <div
-                className="overflow-hidden rounded-lg bg-gray-100 border border-gray-200 relative"
-                style={{ width: '220px', minWidth: '220px', height: '150px', display: 'block', flexShrink: 0 }}
+                className="overflow-hidden rounded-lg bg-gray-100 border border-gray-100 flex-shrink-0 relative"
+                style={{ width: '130px', minWidth: '130px', height: '90px' }}
             >
                 {image_url ? (
                     <img
@@ -47,43 +34,39 @@ export const ResearchCard = ({
                 )}
             </div>
 
-            {/* Text Column */}
-            <div className="flex-1 min-w-0" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '12px', marginBottom: '8px' }}>
-                    <span className="font-bold uppercase tracking-widest" style={{ color: '#111827' }}>{metaCategory}</span>
-                    {date && <span style={{ color: '#D1D5DB' }}>|</span>}
-                    {date && <span style={{ color: '#6B7280', fontWeight: 500 }}>{date}</span>}
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+                {/* Meta row: date | badge | icons */}
+                <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
+                    {date && <span className="text-gray-500 font-medium">{date}</span>}
                     {badge && (
                         <>
-                            <span style={{ color: '#D1D5DB' }}>|</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#DC2626', fontWeight: 'bold' }}>
-                                {hasPremiumBadge ? <Lock size={12} /> : <KeyRound size={12} />}
+                            {date && <span className="text-gray-300">|</span>}
+                            <span className="bg-red-600 text-white font-semibold px-2 py-0.5 rounded text-xs">
                                 {badge}
                             </span>
                         </>
                     )}
+                    <span className="text-gray-300">|</span>
+                    <div className="flex items-center gap-1.5 text-gray-400">
+                        <FileText size={12} />
+                        <PlayCircle size={12} />
+                        <LayoutGrid size={12} />
+                    </div>
                 </div>
 
-                <h3 
-                    className="leading-snug font-bold transition-colors group-hover:text-red-600"
-                    style={{ margin: '0 0 12px 0', color: '#111827', fontSize: '20px' }}
+                {/* Title */}
+                <h3
+                    className="font-bold text-gray-900 leading-snug mb-2 group-hover:text-red-600 transition-colors line-clamp-2"
+                    style={{ fontSize: '16px' }}
                 >
                     {title}
                 </h3>
 
-                <p 
-                    className="leading-relaxed line-clamp-2"
-                    style={{ margin: '0 0 16px 0', color: '#374151', fontSize: '15px' }}
-                >
+                {/* Summary */}
+                <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
                     {summary || 'Click to read the full research report on Coresight.'}
                 </p>
-
-                <span 
-                    className="font-bold transition-colors group-hover:text-red-600"
-                    style={{ display: 'inline-flex', alignItems: 'center', color: '#111827', fontSize: '14px' }}
-                >
-                    Read More
-                </span>
             </div>
         </div>
     );
