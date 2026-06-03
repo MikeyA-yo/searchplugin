@@ -17,9 +17,23 @@ export const CleanModal = ({ isOpen, onClose, children }) => {
                 </div>
                 <button
                     onClick={onClose}
-                    className="rounded-full border border-gray-200 bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-center flex-shrink-0"
-                    style={{ width: '40px', height: '40px' }}
                     title="Close"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        border: '1px solid #E5E7EB',
+                        background: 'white',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#6B7280',
+                        flexShrink: 0,
+                        padding: 0,
+                        margin: 0,
+                        lineHeight: 1,
+                    }}
                 >
                     <X size={18} />
                 </button>

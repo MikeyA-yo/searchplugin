@@ -101,21 +101,49 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
         <div className="flex flex-col bg-white h-full w-full overflow-hidden">
             {/* Search Bar */}
             <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
-                <form onSubmit={handleFormSubmit} className="relative flex items-center">
-                    <Search size={17} className="absolute left-4 text-gray-400 pointer-events-none flex-shrink-0" />
+                <form onSubmit={handleFormSubmit} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Search
+                        size={17}
+                        style={{ position: 'absolute', left: '14px', color: '#9CA3AF', pointerEvents: 'none', flexShrink: 0 }}
+                    />
                     <input
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Search Coresight Research..."
                         disabled={isLoading}
-                        className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50 text-gray-900 placeholder-gray-400 text-sm"
+                        style={{
+                            width: '100%',
+                            paddingLeft: '42px',
+                            paddingRight: inputValue ? '40px' : '14px',
+                            paddingTop: '10px',
+                            paddingBottom: '10px',
+                            borderRadius: '12px',
+                            border: '1px solid #E5E7EB',
+                            outline: 'none',
+                            fontSize: '14px',
+                            color: '#111827',
+                            background: isLoading ? '#F9FAFB' : 'white',
+                            boxSizing: 'border-box',
+                        }}
                     />
                     {inputValue && (
                         <button
                             type="button"
                             onClick={() => setInputValue('')}
-                            className="absolute right-3 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                background: 'none',
+                                border: 'none',
+                                padding: '0',
+                                margin: '0',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: '#9CA3AF',
+                                lineHeight: 1,
+                            }}
                         >
                             <X size={17} />
                         </button>
