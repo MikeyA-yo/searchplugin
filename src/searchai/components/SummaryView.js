@@ -4,10 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import { ResearchCard } from './ResearchCard';
 
 const TYPE_FILTERS = [
-    { label: 'Reports', value: 'report', icon: FileText },
-    { label: 'Video', value: 'video', icon: PlayCircle },
-    { label: 'Podcast', value: 'podcast', icon: Mic },
-    { label: 'Infographic', value: 'infographic', icon: LayoutGrid },
+    { label: 'Reports', icon: FileText, href: 'https://coresight.com/research/?fwp_research_products=deep-dives%2Cinsight-reports', red: true },
+    { label: 'Video', icon: PlayCircle, href: 'https://coresight.com/coresight-research-videos/', red: true },
+    { label: 'Podcast', icon: Mic, href: 'https://coresight.com/retailistic-podcast/', red: false },
+    { label: 'Infographic', icon: LayoutGrid, href: 'https://coresight.com/industry-events', red: false },
 ];
 
 const DROPDOWN_LABELS = ['Report Type', 'Sector', 'Theme', 'Region', 'Company', 'Company Type'];
@@ -222,24 +222,30 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
 
                                 {/* Filter Row */}
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    {TYPE_FILTERS.map(({ label, value, icon: Icon }) => (
-                                        <button
-                                            key={value}
-                                            onClick={() => setActiveTypeFilter(activeTypeFilter === value ? null : value)}
-                                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-                                                activeTypeFilter === value
-                                                    ? 'bg-red-600 text-white border-red-600'
-                                                    : 'bg-white border-gray-300 hover:border-red-400'
-                                            }`}
+                                    {TYPE_FILTERS.map(({ label, icon: Icon, href, red }) => (
+                                        <a
+                                            key={label}
+                                            href={href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '6px 14px',
+                                                borderRadius: '9999px',
+                                                border: '1px solid #D1D5DB',
+                                                background: 'white',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                color: red ? '#d62e2f' : '#6B7280',
+                                                textDecoration: 'none',
+                                                cursor: 'pointer',
+                                            }}
                                         >
-                                            <Icon
-                                                size={12}
-                                                className={activeTypeFilter === value ? 'text-white' : 'text-red-600'}
-                                            />
-                                            <span className={activeTypeFilter === value ? 'text-white' : 'text-gray-700'}>
-                                                {label}
-                                            </span>
-                                        </button>
+                                            <Icon size={12} style={{ color: red ? '#d62e2f' : '#9CA3AF', flexShrink: 0 }} />
+                                            {label}
+                                        </a>
                                     ))}
 
                                     <div className="w-px h-5 bg-gray-300 mx-1 self-center" />
@@ -254,12 +260,19 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
                                         </button>
                                     ))}
 
-                                    <button
+                                    <div className="w-px h-5 bg-gray-300 mx-1 self-center" />
+
+                                    <span
+                                        style={{
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            color: '#d62e2f',
+                                            cursor: 'pointer',
+                                        }}
                                         onClick={() => setActiveTypeFilter(null)}
-                                        className="text-xs font-semibold text-red-600 hover:text-red-800 px-2 py-2 cursor-pointer"
                                     >
                                         Reset
-                                    </button>
+                                    </span>
                                 </div>
 
                                 {/* Count */}
