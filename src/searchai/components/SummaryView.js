@@ -4,13 +4,36 @@ import ReactMarkdown from 'react-markdown';
 import { ResearchCard } from './ResearchCard';
 
 const TYPE_FILTERS = [
-    { label: 'Reports', icon: FileText, href: 'https://coresight.com/research/?fwp_research_products=deep-dives%2Cinsight-reports', red: true },
-    { label: 'Video', icon: PlayCircle, href: 'https://coresight.com/coresight-research-videos/', red: true },
-    { label: 'Podcast', icon: Mic, href: 'https://coresight.com/retailistic-podcast/', red: false },
-    { label: 'Infographic', icon: LayoutGrid, href: 'https://coresight.com/industry-events', red: false },
+    { label: 'Reports', icon: FileText, red: true },
+    { label: 'Video', icon: PlayCircle, red: true },
+    { label: 'Podcast', icon: Mic, red: false },
+    { label: 'Infographic', icon: LayoutGrid, red: false },
 ];
 
 const DROPDOWN_LABELS = ['Report Type', 'Sector', 'Theme', 'Region', 'Company', 'Company Type'];
+
+const SECTORS_LIST = [
+    'retail', 'e-commerce', 'ecommerce', 'apparel', 'footwear', 'beauty', 'grocery', 'luxury', 
+    'home', 'electronics', 'department stores', 'automotive', 'discount', 'drugstores', 
+    'restaurants', 'delivery', 'cpg', 'consumer packaged goods', 'fashion', 'sportswear'
+];
+const THEMES_LIST = [
+    'sustainability', 'generative ai', 'ai', 'technology', 'inflation', 'holiday', 'consumer trends', 
+    'supply chain', 'omnichannel', 'live streaming', 'social commerce', 'metaverse', 'macroeconomics', 
+    'labor', 'payments', 'metaverse', 'web3', 'sourcing', 'logistics', 'inventory'
+];
+const REGIONS_LIST = [
+    'us', 'usa', 'china', 'europe', 'asia', 'global', 'uk', 'india', 'north america', 'apac', 'emea',
+    'united states', 'united kingdom', 'germany', 'france', 'japan', 'latam'
+];
+const COMPANIES_LIST = [
+    'walmart', 'amazon', 'target', 'alibaba', 'jd.com', 'macy\'s', 'macys', 'nordstrom', 'kroger', 
+    'costco', 'shein', 'temu', 'inditex', 'h&m', 'nike', 'adidas', 'sephora', 'l\'oreal', 'loreal',
+    'apple', 'google', 'meta', 'microsoft', 'shopify', 'salesforce'
+];
+const COMPANY_TYPES_LIST = [
+    'retailer', 'brand', 'technology provider', 'startup', 'conglomerate', 'enabler', 'platform'
+];
 
 export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
     const [query, setQuery] = React.useState(initialQuery);
@@ -22,6 +45,70 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
     const [hasSearched, setHasSearched] = React.useState(false);
     const [isSummaryExpanded, setIsSummaryExpanded] = React.useState(false);
     const [activeTypeFilter, setActiveTypeFilter] = React.useState(null);
+    const [openDropdown, setOpenDropdown] = React.useState(null);
+    const [selectedFilters, setSelectedFilters] = React.useState({
+        'Report Type': null,
+        'Sector': null,
+        'Theme': null,
+        'Region': null,
+        'Company': null,
+        'Company Type': null
+    });
+
+    const dropdownRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const options = React.useMemo(() => {
+        const sectorOptions = new Set();
+        const themeOptions = new Set();
+        const regionOptions = new Set();
+        const companyOptions = new Set();
+        const companyTypeOptions = new Set();
+        const reportTypeOptions = new Set();
+
+        researchResults.forEach(article => {
+            if (article.category) reportTypeOptions.add(article.category);
+            if (article.badge) reportTypeOptions.add(article.badge);
+
+            const allTags = article.tags || [];
+            allTags.forEach(tag => {
+                const tagLower = tag.toLowerCase().trim();
+                if (SECTORS_LIST.includes(tagLower)) {
+                    sectorOptions.add(tag);
+                } else if (THEMES_LIST.includes(tagLower)) {
+                    themeOptions.add(tag);
+                } else if (REGIONS_LIST.includes(tagLower)) {
+                    regionOptions.add(tag);
+                } else if (COMPANIES_LIST.includes(tagLower)) {
+                    companyOptions.add(tag);
+                } else if (COMPANY_TYPES_LIST.includes(tagLower)) {
+                    companyTypeOptions.add(tag);
+                } else {
+                    if (tag.charAt(0) === tag.charAt(0).toUpperCase()) {
+                        themeOptions.add(tag);
+                    }
+                }
+            });
+        });
+
+        return {
+            'Report Type': Array.from(reportTypeOptions).sort(),
+            'Sector': Array.from(sectorOptions).sort(),
+            'Theme': Array.from(themeOptions).sort(),
+            'Region': Array.from(regionOptions).sort(),
+            'Company': Array.from(companyOptions).sort(),
+            'Company Type': Array.from(companyTypeOptions).sort()
+        };
+    }, [researchResults]);
 
     const apiBaseUrl = (window.searchaiSettings && window.searchaiSettings.apiBaseUrl) || 'https://coresight-chat-backend.vercel.app';
 
@@ -89,13 +176,45 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
     }, [initialQuery, hasSearched]);
 
     const filteredResults = React.useMemo(() => {
-        if (!activeTypeFilter) return researchResults;
-        return researchResults.filter((r) => {
-            const cat = (r.category || '').toLowerCase();
-            const tags = (r.tags || []).map((t) => t.toLowerCase());
-            return cat.includes(activeTypeFilter) || tags.some((t) => t.includes(activeTypeFilter));
+        return researchResults.filter((article) => {
+            // 1. Type Filter (Reports, Video, Podcast, Infographic)
+            if (activeTypeFilter) {
+                const cat = (article.category || '').toLowerCase();
+                const badge = (article.badge || '').toLowerCase();
+                const tags = (article.tags || []).map((t) => t.toLowerCase());
+                
+                const matchQuery = activeTypeFilter.toLowerCase();
+                const baseQuery = matchQuery.endsWith('s') ? matchQuery.slice(0, -1) : matchQuery;
+                
+                const matchesCat = cat.includes(baseQuery);
+                const matchesBadge = badge.includes(baseQuery);
+                const matchesTags = tags.some((t) => t.includes(baseQuery));
+                
+                if (!matchesCat && !matchesBadge && !matchesTags) {
+                    return false;
+                }
+            }
+
+            // 2. Dropdown Filters
+            if (selectedFilters['Report Type']) {
+                const val = selectedFilters['Report Type'];
+                if (article.category !== val && article.badge !== val) {
+                    return false;
+                }
+            }
+
+            const dropdownFields = ['Sector', 'Theme', 'Region', 'Company', 'Company Type'];
+            for (const field of dropdownFields) {
+                if (selectedFilters[field]) {
+                    const val = selectedFilters[field].toLowerCase().trim();
+                    const tags = (article.tags || []).map((t) => t.toLowerCase().trim());
+                    if (!tags.includes(val)) return false;
+                }
+            }
+
+            return true;
         });
-    }, [researchResults, activeTypeFilter]);
+    }, [researchResults, activeTypeFilter, selectedFilters]);
 
     return (
         <div className="flex flex-col bg-white h-full w-full overflow-hidden">
@@ -221,44 +340,98 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
                                 </h3>
 
                                 {/* Filter Row */}
-                                <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    {TYPE_FILTERS.map(({ label, icon: Icon, href, red }) => (
-                                        <a
-                                            key={label}
-                                            href={href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                padding: '6px 14px',
-                                                borderRadius: '9999px',
-                                                border: '1px solid #D1D5DB',
-                                                background: 'white',
-                                                fontSize: '12px',
-                                                fontWeight: 600,
-                                                color: red ? '#d62e2f' : '#6B7280',
-                                                textDecoration: 'none',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <Icon size={12} style={{ color: red ? '#d62e2f' : '#9CA3AF', flexShrink: 0 }} />
-                                            {label}
-                                        </a>
-                                    ))}
+                                <div ref={dropdownRef} className="flex flex-wrap items-center gap-2 mb-2">
+                                    {TYPE_FILTERS.map(({ label, icon: Icon, red }) => {
+                                        const isActive = activeTypeFilter === label.toLowerCase();
+                                        return (
+                                            <button
+                                                key={label}
+                                                type="button"
+                                                onClick={() => {
+                                                    setActiveTypeFilter(isActive ? null : label.toLowerCase());
+                                                }}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '6px 14px',
+                                                    borderRadius: '9999px',
+                                                    border: isActive ? '1px solid #d62e2f' : '1px solid #D1D5DB',
+                                                    background: isActive ? '#fef2f2' : 'white',
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    color: isActive ? '#d62e2f' : (red ? '#d62e2f' : '#6B7280'),
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                }}
+                                            >
+                                                <Icon size={12} style={{ color: isActive || red ? '#d62e2f' : '#9CA3AF', flexShrink: 0 }} />
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
 
                                     <div className="w-px h-5 bg-gray-300 mx-1 self-center" />
 
-                                    {DROPDOWN_LABELS.map((label) => (
-                                        <button
-                                            key={label}
-                                            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-full border border-gray-300 hover:border-gray-400 transition-colors cursor-pointer"
-                                        >
-                                            {label}
-                                            <ChevronDown size={11} />
-                                        </button>
-                                    ))}
+                                    {DROPDOWN_LABELS.map((label) => {
+                                        const hasSelected = !!selectedFilters[label];
+                                        const labelOptions = options[label] || [];
+                                        
+                                        return (
+                                            <div key={label} className="relative inline-block">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setOpenDropdown(openDropdown === label ? null : label)}
+                                                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                                                        hasSelected 
+                                                            ? 'bg-red-50 border-red-300 text-red-600 font-bold' 
+                                                            : 'bg-white border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-400'
+                                                    }`}
+                                                >
+                                                    {selectedFilters[label] || label}
+                                                    <ChevronDown size={11} className={`transition-transform duration-200 ${openDropdown === label ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                {openDropdown === label && (
+                                                    <div className="absolute left-0 mt-1 w-56 rounded-xl bg-white border border-gray-200 shadow-lg py-2 z-50 max-h-60 overflow-y-auto">
+                                                        {labelOptions.length === 0 ? (
+                                                            <div className="px-4 py-2 text-xs text-gray-400 italic">No options available</div>
+                                                        ) : (
+                                                            <>
+                                                                {hasSelected && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setSelectedFilters(prev => ({ ...prev, [label]: null }));
+                                                                            setOpenDropdown(null);
+                                                                        }}
+                                                                        className="w-full text-left px-4 py-2 text-xs text-red-600 font-semibold hover:bg-gray-50 border-b border-gray-100"
+                                                                    >
+                                                                        Clear Filter
+                                                                    </button>
+                                                                )}
+                                                                {labelOptions.map(option => (
+                                                                    <button
+                                                                        key={option}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setSelectedFilters(prev => ({ ...prev, [label]: option }));
+                                                                            setOpenDropdown(null);
+                                                                        }}
+                                                                        className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-50 transition-colors ${
+                                                                            selectedFilters[label] === option ? 'text-red-600 font-bold bg-red-50/40' : 'text-gray-700'
+                                                                        }`}
+                                                                    >
+                                                                        {option}
+                                                                    </button>
+                                                                ))}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
 
                                     <div className="w-px h-5 bg-gray-300 mx-1 self-center" />
 
@@ -269,7 +442,17 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
                                             color: '#d62e2f',
                                             cursor: 'pointer',
                                         }}
-                                        onClick={() => setActiveTypeFilter(null)}
+                                        onClick={() => {
+                                            setActiveTypeFilter(null);
+                                            setSelectedFilters({
+                                                'Report Type': null,
+                                                'Sector': null,
+                                                'Theme': null,
+                                                'Region': null,
+                                                'Company': null,
+                                                'Company Type': null
+                                            });
+                                        }}
                                     >
                                         Reset
                                     </span>
