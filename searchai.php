@@ -62,8 +62,15 @@ add_action( 'init', 'coresight_searchai_block_init' );
  * Enqueue frontend settings.
  */
 function coresight_searchai_frontend_settings() {
+	$is_premium = false;
+	if ( class_exists( 'MeprUser' ) && is_user_logged_in() ) {
+		$mepr_user = new MeprUser( get_current_user_id() );
+		$is_premium = $mepr_user->is_active();
+	}
+
 	$data = array(
-		'apiBaseUrl' => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
+		'apiBaseUrl'    => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
+		'isPremiumUser' => $is_premium,
 	);
 
 	wp_localize_script( 'coresight-searchai-view-script', 'searchaiSettings', $data );

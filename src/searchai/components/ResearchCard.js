@@ -6,6 +6,9 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
     };
 
+    const isPremiumUser = window.searchaiSettings?.isPremiumUser || false;
+    const shouldShowBadge = badge && !(isPremiumUser && badge.toLowerCase().includes('premium'));
+
     return (
         <div
             onClick={handleOpenLink}
@@ -39,7 +42,7 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
                 {/* Meta row: date | badge | icons */}
                 <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
                     {date && <span className="text-gray-500 font-medium">{date}</span>}
-                    {badge && (
+                    {shouldShowBadge && (
                         <>
                             {date && <span className="text-gray-300">|</span>}
                             <span className="bg-red-600 text-white font-semibold px-2.5 py-0.5 rounded-full text-xs">
