@@ -71,6 +71,8 @@ function coresight_searchai_frontend_settings() {
 	$data = array(
 		'apiBaseUrl'    => get_option( 'coresight_searchai_api_url', 'https://coresight-chat-backend.vercel.app' ),
 		'isPremiumUser' => $is_premium,
+		'isLoggedIn'    => is_user_logged_in(),
+		'homeUrl'       => home_url( '/' ),
 	);
 
 	wp_localize_script( 'coresight-searchai-view-script', 'searchaiSettings', $data );

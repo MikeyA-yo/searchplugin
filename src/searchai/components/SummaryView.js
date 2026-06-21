@@ -167,6 +167,16 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
         }
     };
 
+    const handleViewAll = () => {
+        const searchInput = document.querySelector("#search-input, .search-field");
+        const form = searchInput?.closest("form");
+        const action = form?.getAttribute("action") || (window.searchaiSettings?.homeUrl) || '/';
+        const name = searchInput?.getAttribute("name") || 's';
+        
+        const separator = action.includes('?') ? '&' : '?';
+        window.location.href = `${action}${separator}${name}=${encodeURIComponent(query)}`;
+    };
+
     React.useEffect(() => {
         if (initialQuery && !hasSearched) {
             setInputValue(initialQuery);
@@ -470,6 +480,17 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
                                             <ResearchCard {...result} />
                                         </div>
                                     ))}
+                                </div>
+
+                                {/* View All Link */}
+                                <div className="flex justify-center mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={handleViewAll}
+                                        className="text-red-600 hover:text-red-800 text-sm font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent p-0 m-0"
+                                    >
+                                        View all results on Coresight Research
+                                    </button>
                                 </div>
                             </div>
                         )}

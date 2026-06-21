@@ -6,8 +6,21 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
     };
 
+    const isLoggedIn = window.searchaiSettings?.isLoggedIn || false;
     const isPremiumUser = window.searchaiSettings?.isPremiumUser || false;
-    const shouldShowBadge = badge && !(isPremiumUser && badge.toLowerCase().includes('premium'));
+
+    let shouldShowBadge = !!badge;
+    if (badge) {
+        const badgeLower = badge.toLowerCase();
+        
+        if (isPremiumUser && badgeLower.includes('premium')) {
+            shouldShowBadge = false;
+        }
+        
+        if (isLoggedIn && (badgeLower.includes('register') || badgeLower.includes('free access'))) {
+            shouldShowBadge = false;
+        }
+    }
 
     return (
         <div
