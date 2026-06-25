@@ -1,7 +1,17 @@
 import React from 'react';
-import { FileText, PlayCircle, LayoutGrid } from 'lucide-react';
+import { FileText, PlayCircle, LayoutGrid, Monitor, Image } from 'lucide-react';
 
-export const ResearchCard = ({ title, summary, url, date, tags, category, badge, image_url }) => {
+const MULTIMEDIA_ICONS = {
+    report:       FileText,
+    video:        PlayCircle,
+    presentation: Monitor,
+    infographic:  LayoutGrid,
+    image:        Image,
+};
+
+const getIcon = (type) => MULTIMEDIA_ICONS[type] || FileText;
+
+export const ResearchCard = ({ title, summary, url, date, tags, category, badge, image_url, multimedia = [] }) => {
     const handleOpenLink = () => {
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
     };
@@ -12,14 +22,8 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
     let shouldShowBadge = !!badge;
     if (badge) {
         const badgeLower = badge.toLowerCase();
-        
-        if (isPremiumUser && badgeLower.includes('premium')) {
-            shouldShowBadge = false;
-        }
-        
-        if (isLoggedIn && (badgeLower.includes('register') || badgeLower.includes('free access'))) {
-            shouldShowBadge = false;
-        }
+        if (isPremiumUser && badgeLower.includes('premium')) shouldShowBadge = false;
+        if (isLoggedIn && (badgeLower.includes('register') || badgeLower.includes('free access'))) shouldShowBadge = false;
     }
 
     return (
@@ -52,7 +56,7 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
 
             {/* Text */}
             <div className="flex-1 min-w-0">
-                {/* Meta row: date | badge | icons */}
+                {/* Meta row: date | badge | multimedia icons */}
                 <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
                     {date && <span className="text-gray-500 font-medium">{date}</span>}
                     {shouldShowBadge && (
@@ -63,12 +67,37 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
                             </span>
                         </>
                     )}
-                    <span className="text-gray-300">|</span>
-                    <div className="flex items-center gap-1.5 text-gray-400">
-                        <FileText size={12} />
-                        <PlayCircle size={12} />
-                        <LayoutGrid size={12} />
-                    </div>
+                    {multimedia.length > 0 && (
+                        <>
+                            <span className="text-gray-300">|</span>
+                            <div className="flex items-center gap-2">
+                                {multimedia.map(({ type, label, url: mediaUrl }) => {
+                                    const Icon = getIcon(type);
+                                    return (
+                                        <a
+                                            key={type}
+                                            href={mediaUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title={label}
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{
+                                                color: '#9CA3AF',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                textDecoration: 'none',
+                                                transition: 'color 0.15s',
+                                            }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.color = '#d62e2f')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.color = '#9CA3AF')}
+                                        >
+                                            <Icon size={14} />
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Title */}

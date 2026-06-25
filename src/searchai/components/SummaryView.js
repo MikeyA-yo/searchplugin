@@ -145,7 +145,9 @@ export const SummaryView = ({ initialQuery = '', displayMode = 'inline' }) => {
                     tags: article.tags,
                     category: article.category,
                     badge: article.badge,
-                    image_url: article.image_url || article.imageUrl || ''
+                    image_url: article.image_url || article.imageUrl || '',
+                    formats: article.formats || [],
+                    multimedia: article.multimedia || [],
                 }))
                 : [];
 
