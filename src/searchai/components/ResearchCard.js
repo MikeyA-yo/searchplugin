@@ -1,76 +1,90 @@
 import React from 'react';
-import { FileText, PlayCircle, LayoutGrid, Monitor, Image } from 'lucide-react';
+import { FileText, PlayCircle, LayoutGrid, Monitor } from 'lucide-react';
 
-const MULTIMEDIA_ICONS = {
+const M = 'Montserrat, sans-serif';
+const R = 'Roboto, sans-serif';
+
+const ICON_MAP = {
     report:       FileText,
     video:        PlayCircle,
     presentation: Monitor,
     infographic:  LayoutGrid,
-    image:        Image,
 };
 
-const getIcon = (type) => MULTIMEDIA_ICONS[type] || FileText;
+const getIcon = (type) => ICON_MAP[type] || FileText;
 
-export const ResearchCard = ({ title, summary, url, date, tags, category, badge, image_url, multimedia = [] }) => {
+export const ResearchCard = ({ title, summary, url, date, badge, image_url, multimedia = [] }) => {
     const handleOpenLink = () => {
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
     };
 
-    const isLoggedIn = window.searchaiSettings?.isLoggedIn || false;
+    const isLoggedIn    = window.searchaiSettings?.isLoggedIn    || false;
     const isPremiumUser = window.searchaiSettings?.isPremiumUser || false;
 
     let shouldShowBadge = !!badge;
     if (badge) {
-        const badgeLower = badge.toLowerCase();
-        if (isPremiumUser && badgeLower.includes('premium')) shouldShowBadge = false;
-        if (isLoggedIn && (badgeLower.includes('register') || badgeLower.includes('free access'))) shouldShowBadge = false;
+        const bl = badge.toLowerCase();
+        if (isPremiumUser && bl.includes('premium')) shouldShowBadge = false;
+        if (isLoggedIn && (bl.includes('register') || bl.includes('free access'))) shouldShowBadge = false;
     }
 
     return (
         <div
             onClick={handleOpenLink}
-            className="group cursor-pointer flex gap-5 items-start"
+            style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '35px', cursor: 'pointer', width: '100%' }}
         >
-            {/* Thumbnail */}
-            <div
-                className="overflow-hidden rounded-lg bg-gray-100 border border-gray-100 flex-shrink-0 relative"
-                style={{ width: '130px', minWidth: '130px', height: '90px' }}
-            >
+            {/* Cover image */}
+            <div style={{
+                width: '220px', minWidth: '220px', height: '148px',
+                borderRadius: '8px', overflow: 'hidden',
+                background: '#F2F2F2', position: 'relative', flexShrink: 0,
+            }}>
                 {image_url ? (
                     <img
                         src={image_url}
                         alt={title || 'Research article'}
                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                        className="transition-transform duration-300 group-hover:scale-[1.02]"
                         loading="lazy"
                     />
                 ) : (
-                    <div
-                        className="text-gray-400 text-xs font-medium"
-                        style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
+                    <div style={{
+                        position: 'absolute', inset: 0, display: 'flex',
+                        alignItems: 'center', justifyContent: 'center',
+                        color: '#888888', fontSize: '12px', fontFamily: R,
+                    }}>
                         No image
                     </div>
                 )}
             </div>
 
-            {/* Text */}
-            <div className="flex-1 min-w-0">
-                {/* Meta row: date | badge | multimedia icons */}
-                <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
-                    {date && <span className="text-gray-500 font-medium">{date}</span>}
+            {/* Report info */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
+
+                {/* Date | badge | multimedia icons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {date && (
+                        <span style={{ fontFamily: R, fontWeight: 600, fontSize: '16px', lineHeight: '19px', color: '#888888' }}>
+                            {date}
+                        </span>
+                    )}
+
                     {shouldShowBadge && (
                         <>
-                            {date && <span className="text-gray-300">|</span>}
-                            <span className="bg-red-600 text-white font-semibold px-2.5 py-0.5 rounded-full text-xs">
+                            <div style={{ width: '1px', height: '16px', background: '#CBCACA' }} />
+                            <span style={{
+                                background: '#F2F2F2', borderRadius: '25px', padding: '4px 12px',
+                                fontFamily: R, fontWeight: 600, fontSize: '16px', lineHeight: '19px',
+                                color: '#D62E2F', whiteSpace: 'nowrap',
+                            }}>
                                 {badge}
                             </span>
                         </>
                     )}
+
                     {multimedia.length > 0 && (
                         <>
-                            <span className="text-gray-300">|</span>
-                            <div className="flex items-center gap-2">
+                            <div style={{ width: '1px', height: '16px', background: '#CBCACA' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {multimedia.map(({ type, label, url: mediaUrl }) => {
                                     const Icon = getIcon(type);
                                     return (
@@ -82,14 +96,11 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
                                             title={label}
                                             onClick={(e) => e.stopPropagation()}
                                             style={{
-                                                color: '#9CA3AF',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                textDecoration: 'none',
-                                                transition: 'color 0.15s',
+                                                width: '40px', height: '24px',
+                                                background: '#F2F2F2', borderRadius: '25px',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                textDecoration: 'none', color: '#4F4F4F', flexShrink: 0,
                                             }}
-                                            onMouseEnter={(e) => (e.currentTarget.style.color = '#d62e2f')}
-                                            onMouseLeave={(e) => (e.currentTarget.style.color = '#9CA3AF')}
                                         >
                                             <Icon size={14} />
                                         </a>
@@ -101,17 +112,24 @@ export const ResearchCard = ({ title, summary, url, date, tags, category, badge,
                 </div>
 
                 {/* Title */}
-                <h3
-                    className="font-bold text-gray-900 leading-snug mb-2 group-hover:text-red-600 transition-colors line-clamp-2"
-                    style={{ fontSize: '16px' }}
-                >
+                <h3 style={{
+                    fontFamily: M, fontWeight: 700, fontSize: '20px',
+                    lineHeight: '24px', letterSpacing: '0.25px', color: '#2D2A29',
+                    margin: 0, display: '-webkit-box',
+                    WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
                     {title}
                 </h3>
 
                 {/* Summary */}
-                <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+                <p style={{
+                    fontFamily: R, fontWeight: 400, fontSize: '16px', lineHeight: '19px',
+                    color: '#888888', margin: 0,
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
                     {summary || 'Click to read the full research report on Coresight.'}
                 </p>
+
             </div>
         </div>
     );

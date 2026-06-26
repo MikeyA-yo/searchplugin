@@ -4,42 +4,47 @@ import { X, Sparkles } from 'lucide-react';
 export const CleanModal = ({ isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
     return (
-        <div className="fixed inset-0 z-[100000] bg-white flex flex-col">
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 100000,
+            background: '#F9F9F9', display: 'flex', flexDirection: 'column',
+        }}>
             {/* Header bar */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-red-600" />
-                    <span className="font-bold text-gray-900 text-sm tracking-tight">
+            <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0 48px', height: '48px', background: '#FFFFFF',
+                borderBottom: '1px solid #F2F2F2', flexShrink: 0,
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={16} style={{ color: '#D62E2F' }} />
+                    <span style={{
+                        fontFamily: 'Montserrat, sans-serif', fontWeight: 700,
+                        fontSize: '16px', lineHeight: '20px', letterSpacing: '-0.28px',
+                        color: '#2D2A29',
+                    }}>
                         Coresight Research
-                        <span className="text-gray-400 font-normal ml-1.5">| AI Search</span>
+                        <span style={{ fontWeight: 400, color: '#888888', marginLeft: '6px' }}>| AI Search</span>
                     </span>
                 </div>
                 <button
                     onClick={onClose}
                     title="Close"
                     style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        border: '1px solid #E5E7EB',
-                        background: 'white',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#6B7280',
-                        flexShrink: 0,
-                        padding: 0,
-                        margin: 0,
-                        lineHeight: 1,
+                        width: '24px', height: '24px', border: 'none', background: 'none',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', color: '#B3B3B3', padding: 0, margin: 0,
                     }}
                 >
-                    <X size={18} />
+                    <X size={20} />
                 </button>
             </div>
 
-            <div className="flex-1 overflow-hidden">
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 {children}
             </div>
         </div>
