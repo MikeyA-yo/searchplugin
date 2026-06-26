@@ -293,7 +293,7 @@ export const SummaryView = ({ initialQuery = '' }) => {
                             {/* View All */}
                             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '8px' }}>
                                 <a
-                                    href="https://coresight.com/research/"
+                                    href={`https://coresight.com/?s=${encodeURIComponent(query)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{
